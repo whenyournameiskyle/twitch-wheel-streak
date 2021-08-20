@@ -1,5 +1,5 @@
 {
-  "name": "streaky",
+  "name": "twitch-wheel-streak",
   "version": "1.0.0",
   "scripts": {
     "start": "npx node-repl ./index.js",
