@@ -1,13 +1,49 @@
 const fs = require('fs')
 const TwitchJs = require('twitch-js').default
+let timeoutHolder
 const { Events } = TwitchJs.Chat
 const { chat } = new TwitchJs({ log: { level: 'silent' } })
-let timeoutHolder
 
-let channelToObserve = 'AnEternalEnigma'
+// you can call the help function with `help()` to see this in the command line
+const help = () => {
+  console.log(`
+  \n  addPoints(x) - to add x number of points
+  \n  addWheels(x) - to add x number of wheels
+  \n  ap(x) - to add x number of points
+  \n  aw(x) - to add x number of wheels
+  \n  removePoints(x) - to remove x number of points
+  \n  removeWheels(x) - to remove x number of wheels
+  \n  rp(x) - to remove x number of points
+  \n  rw(x) - to remove x number of wheels
+  \n  exit() - exit program \n
+  `)
+}
+
+// put channel username you're using the wheel for here!
+let channelToObserve = 'aneternalenigma'
+
+// set to whatever number you want to be per wheel, ( 0 / 20 )
 let goal = 20
+
+// you can manually set the number of points already earned if you need for the next start of the script
 let points = 0
+
+// you can manually set the number of wheels already earned if you need for the next start of the script
 let wheelCount = 1
+
+// points added per upgraded gift subscription
+let pointsToAddPerGiftUpgrade = 2
+
+// points added per gifted subscription
+// total point value is multiplied by the sub tier
+// and number of gifted months
+// eg: tier 3 at 2 months would be `pointsToAddPerGiftSub * 3 * 2`
+let pointsToAddPerGiftSub = 2
+
+// points added per resubscription
+// total point value is multiplied by the sub tier
+// eg: tier 2 would be `pointsToAddPerResubscription * 2`
+let pointsToAddPerResubscription = 1
 
 chat.connect().then(() => {
   console.log(`
@@ -22,12 +58,12 @@ chat.connect().then(() => {
 
   chat.on(Events.GIFT_PAID_UPGRADE, ({ tags: { displayName, msgParamSenderName } }) => {
     console.log(`${getCurrentTime()} GIFT_PAID_UPGRADE ${displayName} continuing sub from ${msgParamSenderName}`)
-    addPoints(2)
+    addPoints(pointsToAddPerGiftUpgrade)
   })
 
   chat.on(Events.ANON_GIFT_PAID_UPGRADE, () => {
     console.log(`${getCurrentTime()} ANON_GIFT_PAID_UPGRADE`)
-    addPoints(2)
+    addPoints(pointsToAddPerGiftUpgrade)
   })
 
   chat.on(Events.SUBSCRIPTION, ({ parameters, tags: { displayName } }) => {
@@ -52,18 +88,18 @@ chat.connect().then(() => {
     subPlan = parseInt(subPlan) / 1000
 
     console.log(`${getCurrentTime()} SUBSCRIPTION_GIFT ${displayName} gifted ${recipientDisplayName} a ${giftMonths} month Tier ${subPlan}`)
-    addPoints(2 * giftMonths * subPlan)
+    addPoints(pointsToAddPerGiftSub * subPlan * giftMonths)
   })
 
   chat.on(Events.RESUBSCRIPTION, ({ parameters, tags: { displayName } }) => {
     let { subPlan } = parameters
     if ( subPlan  === 'Prime' ) {
       console.log(`${getCurrentTime()} RESUBSCRIPTION ${displayName} with ${subPlan}`)
-      addPoints(1)
+      addPoints(pointsToAddPerResubscription)
     } else {
       subPlan = parseInt(subPlan) / 1000
       console.log(`${getCurrentTime()} RESUBSCRIPTION ${displayName} at Tier ${subPlan}`)
-      addPoints(1 * subPlan)
+      addPoints(pointsToAddPerResubscription * subPlan)
     }
   })
 
@@ -113,20 +149,6 @@ const handleWriteToFile = () => {
       console.log(`${getCurrentTime()} output "${string}" to streak.txt\n`)
     })
   }, 200)
-}
-
-const help = () => {
-  console.log(`
-  \n  addPoints(x) - to add x number of points
-  \n  addWheels(x) - to add x number of wheels
-  \n  ap(x) - to add x number of points
-  \n  aw(x) - to add x number of wheels
-  \n  removePoints(x) - to remove x number of points
-  \n  removeWheels(x) - to remove x number of wheels
-  \n  rp(x) - to remove x number of points
-  \n  rw(x) - to remove x number of wheels
-  \n  exit() - exit program \n
-  `)
 }
 
 const exit = () => {
