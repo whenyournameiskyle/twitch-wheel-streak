@@ -1,0 +1,14 @@
+{
+  "name": "streaky",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "npx node-repl ./index.js",
+    "dev": "node-repl ./index.js"
+  },
+  "dependencies": {
+    "twitch-js": "2.0.0-beta.33"
+  },
+  "engines": {
+    "node": ">=14"
+  }
+}
